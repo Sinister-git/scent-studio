@@ -3,3 +3,4 @@
 *.xapk
 *.apk
 .env
+/dist/
