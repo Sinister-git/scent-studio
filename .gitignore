@@ -1,0 +1,5 @@
+/target/
+/.analysis/
+*.xapk
+*.apk
+.env

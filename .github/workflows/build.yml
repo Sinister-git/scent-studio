@@ -1,0 +1,30 @@
+name: Scent Studio desktop
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y pkg-config libdbus-1-dev libxkbcommon-dev libwayland-dev libgl1-mesa-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+      - run: cargo test --locked --release
+      - run: cargo build --locked --release
+      - if: runner.os == 'macOS'
+        run: |
+          sh packaging/macos/bundle.sh
+          ditto -c -k --keepParent 'target/release/Scent Studio.app' 'target/release/Scent-Studio-macOS.zip'
+      - if: runner.os == 'Linux'
+        run: tar -C target/release -czf target/release/Scent-Studio-Linux.tar.gz scent-studio
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Scent-Studio-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            target/release/scent-studio.exe
+            target/release/Scent-Studio-macOS.zip
+            target/release/Scent-Studio-Linux.tar.gz
+          if-no-files-found: error
